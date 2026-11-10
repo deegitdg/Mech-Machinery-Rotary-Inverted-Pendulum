@@ -1,0 +1,24 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# MATLAB / Simulink generated files
+slprj/
+*.asv
+*.autosave
+*.slxc
+
+# Temporary and backup files
+*.bak
+*.tmp
+*.lock

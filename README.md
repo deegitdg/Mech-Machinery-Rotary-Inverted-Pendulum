@@ -1,43 +1,53 @@
-# Mechanical Engineering Project Template
+# Furuta Pendulum (Rotary Inverted Pendulum)
 
-A reusable starting point for projects in the Mechanical Engineering Department. Use this repository as a template to organize a project’s mechanical design, electronics, software, machine skills, simulation, documentation, experiments, and publications.
+A project focused on the design, modeling, simulation, and control of a Furuta Pendulum system. The objective is to study the dynamics of an underactuated system and develop control strategies capable of balancing the pendulum in the upright position.
 
-## Getting started
+## Project Overview
 
-1. Select **Use this template** on GitHub to create a repository for your project.
-2. Rename the project in this README and update the project summary, team, and objectives.
-3. Review the folder READMEs and replace the examples with project-specific information.
-4. Create GitHub Issues for tasks and record important design decisions and test results.
-5. Check the license placeholder and select appropriate terms before sharing or reusing project work.
+- **Project Name:** Furuta Pendulum (Rotary Inverted Pendulum)
+- **Purpose:** To design and simulate a Furuta Pendulum system and investigate control techniques for stabilizing an inverted pendulum.
+- **Author:** Pongkun Sukonrat (6730301721)
+- **Semester:** 1/2026
+- **Status:** In Progress
+- **Last Updated:** 2026-11-11
 
-## Project overview
+## Project Objectives
 
-- **Project name:** [Enter project name]
-- **Problem / purpose:** [Describe the engineering need]
-- **Team:** [Names and responsibilities]
-- **Status:** Planning
-- **Last updated:** [YYYY-MM-DD]
+1. Develop a CAD model of the Furuta Pendulum using Fusion 360.
+2. Build a dynamic simulation using MATLAB Simulink and Simscape Multibody.
+3. Analyze the system dynamics and motion characteristics.
+4. Design and evaluate controllers for pendulum stabilization.
+5. Compare simulation results with theoretical predictions.
 
-## Repository structure
+## Repository Structure
 
-| Path | Purpose |
-|---|---|
-| `hardware/mechanical/` | CAD models, drawings, and fabrication files |
-| `hardware/electronics/` | Schematics, PCB files, and wiring diagrams |
-| `hardware/bom.csv` | Bill of materials with quantities, units, and sourcing details |
-| `software/firmware/` | Microcontroller code and board setup |
-| `software/application/` | PC or Raspberry Pi application code |
-| `machine-skills/` | Machine commands, procedures, and skill instructions |
-| `simulation/` | Models, scripts, assumptions, and simulation results |
-| `docs/` | Assembly, setup, operation, and maintenance instructions |
-| `media/` | Images, GIFs, and links to demonstration videos |
-| `experiments/` | Procedures, raw data, and results |
-| `publications/` | Project-related journal and conference papers |
+- **hardware/** - Mechanical design, manufacturing drawings, and hardware components.
+- **simulation/** - MATLAB, Simulink, and Simscape Multibody models.
+- **software/** - Control algorithms and supporting scripts.
+- **experiments/** - Test procedures, results, and analysis.
+- **docs/** - Project documentation and reports.
+- **media/** - Images, figures, videos, and presentation materials.
+- **publications/** - Final reports, papers, and presentations.
 
-## Collaboration and file practices
+## Software and Tools
 
-Use descriptive filenames and commit messages. Record units, revisions, software versions, and assumptions. Keep editable source files where practical. Avoid committing credentials, private data, temporary files, or duplicate exports. Consider Git LFS for large CAD, simulation, and video files.
+- MATLAB
+- Simulink
+- Simscape Multibody
+- Fusion 360
 
-## Safety and validation
+## Collaboration and File Practices
 
-Document hazards, safeguards, and operating limits before testing hardware. Validate important calculations and simulation results against measurements where practical.
+Use descriptive filenames and clear commit messages. Document model assumptions, parameter values, units, and software versions. Maintain version control for all simulation and design files.
+
+## Safety and Validation
+
+Simulation results should be validated against theoretical models and established Furuta Pendulum dynamics. Any future hardware implementation should consider mechanical safety, operational limits, and emergency stop procedures.
+
+## Expected Outcomes
+
+- Complete CAD model of the Furuta Pendulum.
+- Functional Simscape Multibody simulation.
+- Dynamic analysis of system behavior.
+- Controller implementation and performance evaluation.
+- Comprehensive project report and presentation.

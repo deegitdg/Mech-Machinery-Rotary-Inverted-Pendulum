@@ -16,18 +16,6 @@ A project focused on the design, modeling, simulation, and control of a Furuta P
 1. Develop a CAD model of the Furuta Pendulum using Fusion 360.
 2. Build a dynamic simulation using MATLAB Simulink and Simscape Multibody.
 3. Analyze the system dynamics and motion characteristics.
-4. Design and evaluate controllers for pendulum stabilization.
-5. Compare simulation results with theoretical predictions.
-
-## Repository Structure
-
-- **hardware/** - Mechanical design, manufacturing drawings, and hardware components.
-- **simulation/** - MATLAB, Simulink, and Simscape Multibody models.
-- **software/** - Control algorithms and supporting scripts.
-- **experiments/** - Test procedures, results, and analysis.
-- **docs/** - Project documentation and reports.
-- **media/** - Images, figures, videos, and presentation materials.
-- **publications/** - Final reports, papers, and presentations.
 
 ## Software and Tools
 

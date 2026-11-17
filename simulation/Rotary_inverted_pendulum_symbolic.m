@@ -4,7 +4,7 @@ clear; clc; close all;
 
 % --- 1. System Parameters ---
 p.m_p = 0.1;                   % Pendulum mass (kg)
-p.L_r = 0.10;                  % Rotary arm length (m)
+p.L_r = 0.11219;                  % Rotary arm length (m)
 p.L_p = 0.10;                  % Pendulum length (m) 
 p.l_p = p.L_p / 2;              % Pendulum COM (m)
 p.J_r = 0.002;                 % Arm inertia

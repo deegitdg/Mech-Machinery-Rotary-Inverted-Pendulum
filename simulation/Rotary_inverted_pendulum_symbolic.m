@@ -5,9 +5,9 @@ clear; clc; close all;
 % --- 1. System Parameters ---
 p.m_p = 0.1;                   % Pendulum mass (kg)
 p.L_r = 0.11219;                  % Rotary arm length (m)
-p.L_p = 0.10;                  % Pendulum length (m) 
+p.L_p = 0.1;                  % Pendulum length (m) 
 p.l_p = p.L_p / 2;              % Pendulum COM (m)
-p.J_r = 0.002;                 % Arm inertia
+p.J_r = (1/3)*0.15*p.L_r^2;                 % Arm inertia (1/3)*m_r*L_r^2
 p.J_p = (1/3) * p.m_p * (p.L_p)^2; % Pendulum inertia
 p.g   = 9.81;                  % Gravity
 p.J_total_arm  = p.J_r + p.m_p * p.L_r^2;
@@ -16,9 +16,9 @@ p.M0           = p.m_p * p.L_r * p.l_p;
 
 % Friction & Motor Parameters
 p.b_theta = 0.005; p.b_alpha = 0.001;
-p.R_m     = 2.6;   p.K_t     = 0.00767;
-p.K_m     = 0.00767;
-p.N       = 15.0;
+p.R_m     = 7.14;   p.K_t     = 0.035;
+p.K_m     = 0.035;
+p.N       = 1.0;
 p.V_max   = 24.0;
 p.b_eq = p.b_theta + (p.N^2 * p.K_t * p.K_m) / p.R_m;
 p.gamma = (p.N * p.K_t) / p.R_m;
@@ -38,8 +38,8 @@ R = 2.0;
 K_lqr = lqr(A, B, Q, R);
 
 % --- 3. Run Simulation ---
-% Start pendulum at 70° (20° away from 90° vertical up)
-x0 = [0; deg2rad(70); 0; 0];
+% Start pendulum at 80° (10° away from 90° vertical up)
+x0 = [0; deg2rad(100); 0; 0];
 tspan = [0 10];
 options = odeset('RelTol', 1e-3, 'AbsTol', 1e-3);
 [t, x] = ode45(@(t, x) furuta_dynamics(t, x, p, K_lqr), tspan, x0, options);

@@ -209,6 +209,12 @@ It produces arm and pendulum angle histories and an animated 3D view. This initi
 
 ## Part III: Simscape Multibody & Controller Design
 
+### Simulation Animation
+
+The animation below shows the supplied Simscape model video and plays directly on this page.
+
+![Simscape Multibody animation](simulation/simulation_preview.gif)
+
 The [parameter script](simulation/Rotary_inverted_pendulum_params.m) builds a linearized model about upright, loads `A` and `B` from the [MAT file](simulation/Rotary_inverted_pendulum_control_.mat) when available, and otherwise uses its hand-built matrices.
 
 It computes pole-placement feedback and observer gains, followed by LQR and Kalman-filter quantities.
@@ -285,7 +291,7 @@ The native Fusion 360 design, fabrication drawings and a populated component BOM
 
 The repository provides CAD geometry, prototype photographs, simulation source files, a model image and an AVI video.
 
-Download the [project video](simulation/Rotary_inverted_pendulum_real_model.avi) to view it locally.
+The Simscape animation is displayed above. The [original AVI video](simulation/Rotary_inverted_pendulum_real_model.avi) is also available for download.
 
 Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data.
 
@@ -298,3 +304,4 @@ A reproducible MATLAB-versus-Simscape comparison requires consistent:
 - Input and controller settings
 
 No numerical agreement or hardware balancing performance is claimed here without those results.
+

@@ -12,7 +12,7 @@ A motor rotates a horizontal arm about a vertical axis. A pendulum attached at t
 
 | Item | Description |
 |---|---|
-| Author | Pongkun Sukonrat (6730301721) |
+| Author | Deegit Chayawan (6730179521) <br> Songprod Raksaphakdee (6730190321) <br> Pongkun Sukonrat (6730301721) |
 | Semester | 1/2026 |
 | Mechanism | Spatial rotary inverted pendulum / Furuta pendulum |
 | Modeling | Nonlinear equations of motion and linearized state-space models |

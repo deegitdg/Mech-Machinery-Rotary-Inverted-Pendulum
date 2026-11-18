@@ -58,7 +58,15 @@ The existing simulation workflows use different pendulum angle references:
 | Upright | `alpha = 90°` | `alpha = 180°` after calibration |
 | Initial pendulum angle | `70°` | `alpha_0 = 170°` |
 
-For these positive-angle conventions, the calibrated Simscape angle corresponds to the MATLAB angle plus 90°. Confirm sensor polarity and CAD-frame calibration before comparing signals. The nonlinear script uses the upright angle error $\beta = \alpha - \pi/2$, wrapped to $[-\pi,\pi)$ for feedback. Angles are in radians internally in the nonlinear simulation.
+For these positive-angle conventions, the calibrated Simscape angle corresponds to the MATLAB angle plus 90°. Confirm sensor polarity and CAD-frame calibration before comparing signals.
+
+The nonlinear script uses the upright angle error:
+
+$$
+\beta = \alpha - \frac{\pi}{2}
+$$
+
+The error is wrapped to the interval $[-\pi,\pi)$ for feedback. Angles are in radians internally in the nonlinear simulation.
 
 ### Nominal Geometry
 
@@ -82,52 +90,128 @@ The file is named [`Rotary_inverted_pendulum_symbolic.m`](simulation/Rotary_inve
 
 ### Equations Implemented in the Script
 
-With $q=[\theta,\beta]^T$, the script solves:
+Define the generalized coordinates as:
+
+$$
+q =
+\begin{bmatrix}
+\theta\\
+\beta
+\end{bmatrix}.
+$$
+
+The script solves:
 
 $$
 M(q)\ddot q =
-\begin{bmatrix}\tau_{arm}-C_1\\-C_2\end{bmatrix},
-\qquad
-M(q)=\begin{bmatrix}
-J_{r,t}+m_p l_p^2\sin^2\beta & m_p L_r l_p\cos\beta\\
-m_p L_r l_p\cos\beta & J_{p,t}
+\begin{bmatrix}
+\tau_{arm}-C_1\\
+-C_2
 \end{bmatrix},
 $$
 
-where $J_{r,t}=J_r+m_pL_r^2$ and $J_{p,t}=J_p+m_pl_p^2$. The remaining terms in the code are:
+with the mass matrix:
+
+$$
+M(q)=
+\begin{bmatrix}
+J_{r,t}+m_p l_p^2\sin^2\beta & m_p L_r l_p\cos\beta\\
+m_p L_r l_p\cos\beta & J_{p,t}
+\end{bmatrix}.
+$$
+
+The effective inertias in the script are:
+
+$$
+J_{r,t}=J_r+m_pL_r^2,
+\qquad
+J_{p,t}=J_p+m_pl_p^2.
+$$
+
+The remaining terms are:
 
 $$
 \begin{aligned}
-C_1 &= m_p l_p^2\sin(2\beta)\dot\theta\dot\beta-m_pL_rl_p\sin\beta\,\dot\beta^2,\\
-C_2 &= -\tfrac12m_pl_p^2\sin(2\beta)\dot\theta^2-m_pgl_p\sin\beta+b_\alpha\dot\beta,\\
+C_1 &= m_p l_p^2\sin(2\beta)\dot\theta\dot\beta
+-m_pL_rl_p\sin\beta\,\dot\beta^2,\\
+C_2 &= -\frac{1}{2}m_pl_p^2\sin(2\beta)\dot\theta^2
+-m_pgl_p\sin\beta+b_\alpha\dot\beta,\\
 \tau_{arm} &= \gamma V_m-b_{eq}\dot\theta,\\
-\gamma &= \frac{NK_t}{R_m},\qquad b_{eq}=b_\theta+\frac{N^2K_tK_m}{R_m}.
+\gamma &= \frac{NK_t}{R_m},\\
+b_{eq} &= b_\theta+\frac{N^2K_tK_m}{R_m}.
 \end{aligned}
 $$
 
-These equations document the current implementation. The nonlinear script sets $J_p=\tfrac13m_pL_p^2$ and then adds $m_pl_p^2$ to form $J_{p,t}$. The parameter script instead uses $\tfrac13m_pL_p^2$ directly as the pivot inertia. Reconcile this inertia convention before quantitative comparisons.
+These equations document the current implementation. The nonlinear script sets the pendulum inertia to:
+
+$$
+J_p=\frac{1}{3}m_pL_p^2
+$$
+
+and then adds the parallel-axis term to form:
+
+$$
+J_{p,t}=J_p+m_pl_p^2.
+$$
+
+The parameter script instead uses the pivot inertia directly:
+
+$$
+J_p=\frac{1}{3}m_pL_p^2.
+$$
+
+Reconcile this inertia convention before quantitative comparisons between the two workflows.
 
 ### Control Strategy
 
-Near upright, the MATLAB simulation uses an LQR controller:
+Near upright, the MATLAB simulation uses an LQR controller with the error state:
 
 $$
-x_e=[\theta,\beta,\dot\theta,\dot\beta]^T,\qquad V_{LQR}=-K_{LQR}x_e,
+x_e=
+\begin{bmatrix}
+\theta\\
+\beta\\
+\dot\theta\\
+\dot\beta
+\end{bmatrix}.
 $$
 
-with weights $Q=\operatorname{diag}(100,600,20,20)$ and $R=2$.
-
-Away from upright, an energy-based controller contributes a swing-up command. The voltage commands are blended using $w=\exp[-(\beta/0.5)^2]$, followed by a smooth voltage limit:
+The feedback voltage is:
 
 $$
-V_m=V_{max}\tanh\left(\frac{wV_{LQR}+(1-w)V_{swing}}{V_{max}}\right).
+V_{LQR}=-K_{LQR}x_e.
 $$
 
-The script simulates **10 seconds**, starting at $\theta=0°$, $\alpha=70°$ and zero angular velocities. It produces arm and pendulum angle histories and an animated 3D view. This initial condition is 20° from upright; it does not by itself demonstrate swing-up from the hanging equilibrium.
+The LQR weights are `Q = diag([100, 600, 20, 20])` and `R = 2`.
+
+Away from upright, an energy-based controller contributes a swing-up command. The voltage commands are blended using:
+
+$$
+w=\exp\left[-\left(\frac{\beta}{0.5}\right)^2\right].
+$$
+
+A smooth voltage limit is then applied:
+
+$$
+V_m=V_{max}\tanh\left(
+\frac{wV_{LQR}+(1-w)V_{swing}}{V_{max}}
+\right).
+$$
+
+The script simulates **10 seconds**, starting with:
+
+- Arm angle: **0°**
+- Pendulum angle: **70°**
+- Arm angular velocity: **0 rad/s**
+- Pendulum angular velocity: **0 rad/s**
+
+It produces arm and pendulum angle histories and an animated 3D view. This initial condition is 20° from upright; it does not by itself demonstrate swing-up from the hanging equilibrium.
 
 ## Part III: Simscape Multibody & Controller Design
 
-The [parameter script](simulation/Rotary_inverted_pendulum_params.m) builds a linearized model about upright, loads `A` and `B` from the [MAT file](simulation/Rotary_inverted_pendulum_control_.mat) when available, and otherwise uses its hand-built matrices. It computes pole-placement feedback and observer gains, followed by LQR and Kalman-filter quantities.
+The [parameter script](simulation/Rotary_inverted_pendulum_params.m) builds a linearized model about upright, loads `A` and `B` from the [MAT file](simulation/Rotary_inverted_pendulum_control_.mat) when available, and otherwise uses its hand-built matrices.
+
+It computes pole-placement feedback and observer gains, followed by LQR and Kalman-filter quantities.
 
 ### Parameters Currently Used
 
@@ -164,13 +248,22 @@ For the Simscape workflow, initialize parameters and open the model:
 addpath(fullfile(pwd, 'simulation'))
 addpath(fullfile(pwd, 'hardware', 'mechanical'))
 addpath(fullfile(pwd, 'hardware', 'electronics'))
+
 run(fullfile('simulation', 'Rotary_inverted_pendulum_params.m'))
 open_system('Rotary_inverted_pendulum_simscape_model')
 ```
 
 Resolve CAD file references and confirm model initialization before starting the Simscape simulation. These are the entry points; successful execution of the uploaded model has not yet been verified in a clean environment.
 
-The numerical script requires MATLAB and Control System Toolbox. The model workflow additionally requires Simulink, Simscape and Simscape Multibody. A standalone symbolic derivation is not currently included.
+### Software Requirements
+
+| Workflow | Required software |
+|---|---|
+| Nonlinear MATLAB simulation | MATLAB and Control System Toolbox |
+| Simscape workflow | MATLAB, Control System Toolbox, Simulink, Simscape and Simscape Multibody |
+| CAD inspection | Fusion 360 or another STEP-compatible CAD application |
+
+A standalone symbolic derivation is not currently included.
 
 ## Part IV: CAD Design & Physical Prototype
 
@@ -190,7 +283,18 @@ The native Fusion 360 design, fabrication drawings and a populated component BOM
 
 ## Results & Validation Status
 
-The repository provides CAD geometry, prototype photographs, simulation source files, a model image and an AVI video. Download the [project video](simulation/Rotary_inverted_pendulum_real_model.avi) to view it locally.
+The repository provides CAD geometry, prototype photographs, simulation source files, a model image and an AVI video.
 
-Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data. A reproducible MATLAB-versus-Simscape comparison requires consistent inertia definitions, motor parameters, initial conditions and angle references. No numerical agreement or hardware balancing performance is claimed here without those results.
+Download the [project video](simulation/Rotary_inverted_pendulum_real_model.avi) to view it locally.
 
+Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data.
+
+A reproducible MATLAB-versus-Simscape comparison requires consistent:
+
+- Inertia definitions
+- Motor parameters
+- Initial conditions
+- Angle references
+- Input and controller settings
+
+No numerical agreement or hardware balancing performance is claimed here without those results.

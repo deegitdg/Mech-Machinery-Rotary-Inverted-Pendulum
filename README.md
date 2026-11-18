@@ -1,41 +1,199 @@
-# Furuta Pendulum (Rotary Inverted Pendulum)
+# Rotary Inverted Pendulum — Design, Dynamics & Simulation
 
-A project focused on the design, modeling, simulation, and control of a Furuta Pendulum system. The objective is to study the dynamics of an underactuated system and develop control strategies capable of balancing the pendulum in the upright position.
+Mechanical machinery project exploring a **Furuta pendulum** through CAD design, nonlinear MATLAB simulation, feedback control, Simscape Multibody modeling, and a physical prototype.
+
+<p align="center">
+  <img src="simulation/Rotary_inverted_pendulum.png" alt="CAD view of the rotary inverted pendulum assembly" width="460">
+</p>
 
 ## Project Overview
 
-- **Project Name:** Furuta Pendulum (Rotary Inverted Pendulum)
-- **Purpose:** To design and simulate a Furuta Pendulum system and investigate control techniques for stabilizing an inverted pendulum.
-- **Author:** Pongkun Sukonrat (6730301721)
-- **Semester:** 1/2026
-- **Status:** In Progress
-- **Last Updated:** 2026-11-11
+A motor rotates a horizontal arm about a vertical axis. A pendulum attached at the arm tip swings about a second revolute joint. The motor acts on the arm; the pendulum is controlled indirectly through the coupled dynamics. The upright position is unstable, making this **two-degree-of-freedom, single-input system** a platform for studying underactuated motion and feedback control.
 
-## Project Objectives
+| Item | Description |
+|---|---|
+| Author | Pongkun Sukonrat (6730301721) |
+| Semester | 1/2026 |
+| Mechanism | Spatial rotary inverted pendulum / Furuta pendulum |
+| Modeling | Nonlinear equations of motion and linearized state-space models |
+| Control in MATLAB script | Blended energy-based swing-up and LQR balancing |
+| Control design in parameter script | State feedback, observer design, LQR and Kalman filtering |
+| Tools | Fusion 360, MATLAB, Simulink, Simscape Multibody |
 
-1. Develop a CAD model of the Furuta Pendulum using Fusion 360.
-2. Build a dynamic simulation using MATLAB Simulink and Simscape Multibody.
-3. Analyze the system dynamics and motion characteristics.
+### Repository Guide
 
-## Software and Tools
+| Path | Contents |
+|---|---|
+| [`hardware/mechanical/`](hardware/mechanical/) | STEP files for links and mounting clamp |
+| [`hardware/electronics/`](hardware/electronics/) | STEP geometry for motor body and encoder |
+| [`hardware/`](hardware/) | Prototype photographs and a BOM template |
+| [`simulation/Rotary_inverted_pendulum_symbolic.m`](simulation/Rotary_inverted_pendulum_symbolic.m) | Nonlinear numerical simulation, LQR design, state plots and 3D animation |
+| [`simulation/Rotary_inverted_pendulum_params.m`](simulation/Rotary_inverted_pendulum_params.m) | Motor, geometry and controller parameters for the Simscape workflow |
+| [`simulation/Rotary_inverted_pendulum_control_.mat`](simulation/Rotary_inverted_pendulum_control_.mat) | Stored state-space matrices loaded by the parameter script |
+| [`simulation/Rotary_inverted_pendulum_simscape_model.slx`](simulation/Rotary_inverted_pendulum_simscape_model.slx) | Simulink / Simscape model |
+| [`simulation/Rotary_inverted_pendulum_real_model.avi`](simulation/Rotary_inverted_pendulum_real_model.avi) | Project video; download to play |
 
-- MATLAB
-- Simulink
-- Simscape Multibody
-- Fusion 360
+## Part I: Mechanism, Coordinates & Working Space
 
-## Collaboration and File Practices
+### Links and Joints
 
-Use descriptive filenames and clear commit messages. Document model assumptions, parameter values, units, and software versions. Maintain version control for all simulation and design files.
+| Element | Function |
+|---|---|
+| Fixed base | Supports the motor and provides the ground reference |
+| Rotary arm | Motor-driven link rotating in the horizontal plane |
+| Pendulum | Passive link swinging about the joint at the arm tip |
+| Joint A | Actuated revolute joint between the base and arm |
+| Joint B | Passive revolute joint between the arm and pendulum |
 
-## Safety and Validation
+The idealized mechanism has **3 links including ground and 2 independent revolute joints**, giving **2 DOF**. One motor provides the input, so the system is underactuated. This is a spatial mechanism; its mobility follows from the two independent joint coordinates.
 
-Simulation results should be validated against theoretical models and established Furuta Pendulum dynamics. Any future hardware implementation should consider mechanical safety, operational limits, and emergency stop procedures.
+### Angle Conventions
 
-## Expected Outcomes
+The existing simulation workflows use different pendulum angle references:
 
-- Complete CAD model of the Furuta Pendulum.
-- Functional Simscape Multibody simulation.
-- Dynamic analysis of system behavior.
-- Controller implementation and performance evaluation.
-- Comprehensive project report and presentation.
+| Quantity | Nonlinear MATLAB script | Simscape parameter script |
+|---|---|---|
+| Hanging down | `alpha = -90°` | `alpha = 0°` after calibration |
+| Horizontal | `alpha = 0°` | `alpha = 90°` after calibration |
+| Upright | `alpha = 90°` | `alpha = 180°` after calibration |
+| Initial pendulum angle | `70°` | `alpha_0 = 170°` |
+
+For these positive-angle conventions, the calibrated Simscape angle corresponds to the MATLAB angle plus 90°. Confirm sensor polarity and CAD-frame calibration before comparing signals. The nonlinear script uses the upright angle error $\beta = \alpha - \pi/2$, wrapped to $[-\pi,\pi)$ for feedback. Angles are in radians internally in the nonlinear simulation.
+
+### Nominal Geometry
+
+Both scripts specify a rotary arm length of **112.19 mm**, a pendulum length of **100 mm**, and a pendulum mass of **0.1 kg**. The nonlinear model places the pendulum center of mass **50 mm** from its joint.
+
+The pendulum tip coordinates used by the MATLAB animation are:
+
+$$
+\begin{aligned}
+x_p &= L_r\cos\theta + L_p\cos\alpha\sin\theta,\\
+y_p &= L_r\sin\theta - L_p\cos\alpha\cos\theta,\\
+z_p &= L_p\sin\alpha.
+\end{aligned}
+$$
+
+The animation draws an A4 reference rectangle on the floor. This is a visual reference rather than a verified motion envelope: full arm rotation alone sweeps a diameter of 224.38 mm, exceeding the 210 mm short side of A4.
+
+## Part II: Mathematical Model & MATLAB Simulation
+
+The file is named [`Rotary_inverted_pendulum_symbolic.m`](simulation/Rotary_inverted_pendulum_symbolic.m), but its current implementation evaluates explicit nonlinear equations numerically with `ode45`; it does not invoke symbolic derivation commands.
+
+### Equations Implemented in the Script
+
+With $q=[\theta,\beta]^T$, the script solves:
+
+$$
+M(q)\ddot q =
+\begin{bmatrix}\tau_{arm}-C_1\\-C_2\end{bmatrix},
+\qquad
+M(q)=\begin{bmatrix}
+J_{r,t}+m_p l_p^2\sin^2\beta & m_p L_r l_p\cos\beta\\
+m_p L_r l_p\cos\beta & J_{p,t}
+\end{bmatrix},
+$$
+
+where $J_{r,t}=J_r+m_pL_r^2$ and $J_{p,t}=J_p+m_pl_p^2$. The remaining terms in the code are:
+
+$$
+\begin{aligned}
+C_1 &= m_p l_p^2\sin(2\beta)\dot\theta\dot\beta-m_pL_rl_p\sin\beta\,\dot\beta^2,\\
+C_2 &= -\tfrac12m_pl_p^2\sin(2\beta)\dot\theta^2-m_pgl_p\sin\beta+b_\alpha\dot\beta,\\
+\tau_{arm} &= \gamma V_m-b_{eq}\dot\theta,\\
+\gamma &= \frac{NK_t}{R_m},\qquad b_{eq}=b_\theta+\frac{N^2K_tK_m}{R_m}.
+\end{aligned}
+$$
+
+These equations document the current implementation. The nonlinear script sets $J_p=\tfrac13m_pL_p^2$ and then adds $m_pl_p^2$ to form $J_{p,t}$. The parameter script instead uses $\tfrac13m_pL_p^2$ directly as the pivot inertia. Reconcile this inertia convention before quantitative comparisons.
+
+### Control Strategy
+
+Near upright, the MATLAB simulation uses an LQR controller:
+
+$$
+x_e=[\theta,\beta,\dot\theta,\dot\beta]^T,\qquad V_{LQR}=-K_{LQR}x_e,
+$$
+
+with weights $Q=\operatorname{diag}(100,600,20,20)$ and $R=2$.
+
+Away from upright, an energy-based controller contributes a swing-up command. The voltage commands are blended using $w=\exp[-(\beta/0.5)^2]$, followed by a smooth voltage limit:
+
+$$
+V_m=V_{max}\tanh\left(\frac{wV_{LQR}+(1-w)V_{swing}}{V_{max}}\right).
+$$
+
+The script simulates **10 seconds**, starting at $\theta=0°$, $\alpha=70°$ and zero angular velocities. It produces arm and pendulum angle histories and an animated 3D view. This initial condition is 20° from upright; it does not by itself demonstrate swing-up from the hanging equilibrium.
+
+## Part III: Simscape Multibody & Controller Design
+
+The [parameter script](simulation/Rotary_inverted_pendulum_params.m) builds a linearized model about upright, loads `A` and `B` from the [MAT file](simulation/Rotary_inverted_pendulum_control_.mat) when available, and otherwise uses its hand-built matrices. It computes pole-placement feedback and observer gains, followed by LQR and Kalman-filter quantities.
+
+### Parameters Currently Used
+
+| Parameter | Nonlinear MATLAB script | Simscape parameter script |
+|---|---:|---:|
+| Arm length | 0.11219 m | 11.219 cm, converted to SI for the linear model |
+| Pendulum length | 0.10 m | 10 cm, converted to SI for the linear model |
+| Pendulum mass | 0.10 kg | 0.10 kg |
+| Motor torque constant | 0.00767 N·m/A | 0.042 N·m/A |
+| Motor back-EMF constant | 0.00767 V·s/rad | 0.042 V·s/rad |
+| Armature resistance | 2.6 Ω | 8.4 Ω |
+| Gear ratio | 15 | 1 |
+| Voltage limit | 24 V | 10 V |
+
+The [model](simulation/Rotary_inverted_pendulum_simscape_model.slx) metadata records **MATLAB R2026b**. Its geometry references include absolute paths from the original computer and STEP filenames absent from this repository. See the [simulation guide](simulation/README.md) for setup details.
+
+### Running the Project
+
+Clone the repository, open MATLAB, and set the repository root as the current folder.
+
+```bash
+git clone https://github.com/deegitdg/Mech-Machinery-Rotary-Inverted-Pendulum.git
+```
+
+For the standalone numerical simulation:
+
+```matlab
+run(fullfile('simulation', 'Rotary_inverted_pendulum_symbolic.m'))
+```
+
+For the Simscape workflow, initialize parameters and open the model:
+
+```matlab
+addpath(fullfile(pwd, 'simulation'))
+addpath(fullfile(pwd, 'hardware', 'mechanical'))
+addpath(fullfile(pwd, 'hardware', 'electronics'))
+run(fullfile('simulation', 'Rotary_inverted_pendulum_params.m'))
+open_system('Rotary_inverted_pendulum_simscape_model')
+```
+
+Resolve CAD file references and confirm model initialization before starting the Simscape simulation. These are the entry points; successful execution of the uploaded model has not yet been verified in a clean environment.
+
+The numerical script requires MATLAB and Control System Toolbox. The model workflow additionally requires Simulink, Simscape and Simscape Multibody. A standalone symbolic derivation is not currently included.
+
+## Part IV: CAD Design & Physical Prototype
+
+<p align="center">
+  <img src="hardware/S__26058755_0.jpg" alt="Front view of the assembled rotary inverted pendulum prototype" width="440">
+  <img src="hardware/S__26058756_0.jpg" alt="Angled view of the rotary arm, pendulum joint and base mounting" width="440">
+</p>
+
+The photographs show the assembled arm, pendulum, encoder, motor support and table clamp. The uploaded CAD consists of exchange-format STEP files:
+
+| CAD files | Location |
+|---|---|
+| `Link1.STEP`, `Link2.STEP`, `Link3.STEP`, `Ground-camp.STEP` | [`hardware/mechanical/`](hardware/mechanical/) |
+| `Motorbody.STEP`, `Encodoer.STEP` | [`hardware/electronics/`](hardware/electronics/) |
+
+The native Fusion 360 design, fabrication drawings and a populated component BOM are not currently included. Component specifications and manufacturing dimensions should be taken from the design files and measured hardware.
+
+## Results & Validation Status
+
+The repository provides CAD geometry, prototype photographs, simulation source files, a model image and an AVI video. Download the [project video](simulation/Rotary_inverted_pendulum_real_model.avi) to view it locally.
+
+Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data. A reproducible MATLAB-versus-Simscape comparison requires consistent inertia definitions, motor parameters, initial conditions and angle references. No numerical agreement or hardware balancing performance is claimed here without those results.
+
+## Acknowledgment
+
+The presentation structure was inspired by [Pariyakorn2 / Crank-Rocker-Mechanism](https://github.com/Pariyakorn2/Crank-Rocker-Mechanism). The mechanism description, file links and parameter tables above describe the rotary inverted pendulum files in this repository.

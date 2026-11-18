@@ -194,6 +194,3 @@ The repository provides CAD geometry, prototype photographs, simulation source f
 
 Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data. A reproducible MATLAB-versus-Simscape comparison requires consistent inertia definitions, motor parameters, initial conditions and angle references. No numerical agreement or hardware balancing performance is claimed here without those results.
 
-## Acknowledgment
-
-The presentation structure was inspired by [Pariyakorn2 / Crank-Rocker-Mechanism](https://github.com/Pariyakorn2/Crank-Rocker-Mechanism). The mechanism description, file links and parameter tables above describe the rotary inverted pendulum files in this repository.

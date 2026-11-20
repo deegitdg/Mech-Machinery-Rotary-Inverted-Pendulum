@@ -300,20 +300,3 @@ The photographs show the assembled arm, pendulum, encoder, motor support and tab
 
 The native Fusion 360 design, fabrication drawings and a populated component BOM are not currently included. Component specifications and manufacturing dimensions should be taken from the design files and measured hardware.
 
-## Results & Validation Status
-
-The repository provides CAD geometry, prototype photographs, simulation source files, a model image and an AVI video.
-
-The Simscape animation is displayed above. The [original AVI video](simulation/Rotary_inverted_pendulum_simscape_model.avi) is also available for download.
-
-Performance metrics such as settling time, RMS angle error and experimental tracking error are not yet documented with exported time-series data.
-
-A reproducible MATLAB-versus-Simscape comparison requires consistent:
-
-- Inertia definitions
-- Motor parameters
-- Initial conditions
-- Angle references
-- Input and controller settings
-
-No numerical agreement or hardware balancing performance is claimed here without those results.
